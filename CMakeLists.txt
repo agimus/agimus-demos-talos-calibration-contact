@@ -1,97 +1,34 @@
-cmake_minimum_required(VERSION 2.8.3)
+# BSD 2-Clause License
 
-set(CXX_DISABLE_WERROR TRUE)
+# Copyright (c) 2018-2023, CNRS, Airbus SAS
+# All rights reserved.
 
-set(PROJECT_NAME agimus_demos)
-set(PROJECT_DESCRIPTION "Demonstration of Agimus with various robots")
-set(PROJECT_URL "https://github.com/agimus/agimus-demos")
-set(PROJECT_USE_CMAKE_EXPORT TRUE)
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 
-include(cmake/base.cmake)
-include(cmake/test.cmake)
-include(cmake/python.cmake)
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
 
-compute_project_args(PROJECT_ARGS LANGUAGES CXX)
-project(${PROJECT_NAME} ${PROJECT_ARGS})
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
 
-add_project_dependency (dynamic-graph-python 4 REQUIRED)
-add_project_dependency (dynamic_graph_bridge 3 REQUIRED)
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
-
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  roslaunch
-)
-
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES agimus_demos
-#  CATKIN_DEPENDS roslaunch
-#  DEPENDS system_lib
-)
-find_package(Eigen3)
-
-MACRO(INSTALL_DEMO_LAUNCH_FILES DEMO)
-  set(options)
-  set(oneValueArgs)
-  set(multiValueArgs LAUNCHFILES SCRIPTS)
-  cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-  FILE(RELATIVE_PATH robot ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-  MESSAGE(STATUS "Add demonstration ${robot}/${DEMO}")
-  FOREACH (launch_file ${ARG_LAUNCHFILES})
-    install(FILES
-      ${DEMO}/${launch_file}
-      DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-      RENAME ${robot}_${DEMO}_${launch_file}
+# Install talos/calibration/contact launch files
+FOREACH(file bringup_minimal demo simulation world_setup)
+  INSTALL(FILES
+    ${file}.launch
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+    RENAME talos_calibration_contact_${file}.launch
     )
-  ENDFOREACH ()
-  FOREACH (script_file ${ARG_SCRIPTS})
-    install(PROGRAMS "${DEMO}/${script_file}"
-      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-      RENAME ${robot}_${DEMO}_${script_file})
-  ENDFOREACH ()
-ENDMACRO()
-
-OPTION(USE_TALOS "Install files for talos robot" ON)
-OPTION(USE_TIAGO "Install files for tiago robot" ON)
-OPTION(USE_UR10 "Install files for UR10 robot" ON)
-
-IF(USE_TALOS)
-  ADD_SUBDIRECTORY(talos)
-ENDIF()
-IF(USE_TIAGO)
-  ADD_SUBDIRECTORY(tiago)
-  add_subdirectory(tests)
-ENDIF()
-IF(USE_UR10)
-  ADD_SUBDIRECTORY(ur10)
-ENDIF()
-
-add_subdirectory(src)
-
-# Install other files with the same hierarchy as here.
-install(DIRECTORY talos tiago urdf srdf meshes worlds
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-  FILES_MATCHING
-  PATTERN "*"
-  PATTERN "*.launch" EXCLUDE
-)
-
-INSTALL(FILES plugin.xml
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(PROGRAMS
-  scripts/gazebo_object_to_tf.py
-  scripts/visual_tag_initializer.py
-  scripts/calibration_frames_grabber.py
-  scripts/publish_constants.py
-  scripts/group_of_tags.py
-  scripts/publishwmc.py
-  scripts/publish_camera_extrinsics.py
-  scripts/rqt_tooltip_calibration
-  scripts/rqt_contact_calibration
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scripts)
+ENDFOREACH()
